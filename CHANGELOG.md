@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/wyre-technology/itglue-mcp/compare/v1.2.2...v1.2.3) (2026-03-04)
+
+
+### Bug Fixes
+
+* exclude test files from TypeScript compilation ([c5765ca](https://github.com/wyre-technology/itglue-mcp/commit/c5765cadcbfadcc9be3999f7566eea6b7982e9e9))
+
 ## [1.2.2](https://github.com/wyre-technology/itglue-mcp/compare/v1.2.1...v1.2.2) (2026-03-04)
 
 
