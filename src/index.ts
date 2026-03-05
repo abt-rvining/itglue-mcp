@@ -475,12 +475,16 @@ function createMcpServer(): Server {
         inputSchema: {
           type: "object",
           properties: {
+            organization_id: {
+              type: "number",
+              description: "Organization ID that owns the document",
+            },
             id: {
               type: "string",
               description: "The document ID",
             },
           },
-          required: ["id"],
+          required: ["organization_id", "id"],
         },
       },
       {
@@ -732,41 +736,55 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         const params: Record<string, unknown> = {};
-        const filter: Record<string, unknown> = {
-          organizationId: args.organization_id,
-        };
+        const filter: Record<string, unknown> = {};
 
         if (args?.name) filter.name = args.name;
 
-        params.filter = filter;
+        if (Object.keys(filter).length > 0) params.filter = filter;
         if (args?.sort) params.sort = args.sort;
         params.page = {
           size: (args?.page_size as number) || 50,
           number: (args?.page_number as number) || 1,
         };
 
-        const result = await client.request(
-          `/documents`,
-          params
-        );
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
-        };
+        try {
+          const result = await client.request(
+            `/organizations/${args.organization_id}/relationships/documents`,
+            params
+          );
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(result, null, 2),
+              },
+            ],
+          };
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          if (msg.includes("404")) {
+            return {
+              content: [{
+                type: "text",
+                text: `No documents found for organization ${args.organization_id}. The organization may not have the IT Glue Documents module enabled, or may not have any documents yet. Consider using search_flexible_assets instead, which stores documentation as structured data.`,
+              }],
+              isError: true,
+            };
+          }
+          throw err;
+        }
       }
 
       case "get_document": {
-        if (!args?.id) {
+        if (!args?.organization_id || !args?.id) {
           return {
-            content: [{ type: "text", text: "Error: id is required" }],
+            content: [{ type: "text", text: "Error: organization_id and id are required" }],
             isError: true,
           };
         }
-        const doc = await client.get(`/documents/${args.id}`);
+        const doc = await client.get(
+          `/organizations/${args.organization_id}/relationships/documents/${args.id}`
+        );
         return {
           content: [{ type: "text", text: JSON.stringify(doc, null, 2) }],
         };
@@ -780,12 +798,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           };
         }
         const newDoc = await client.post(
-          `/documents`,
+          `/organizations/${args.organization_id}/relationships/documents`,
           {
             data: {
               type: "documents",
               attributes: {
-                "organization-id": args.organization_id,
                 name: args.name,
                 ...(args.content ? { content: args.content } : {}),
               },
