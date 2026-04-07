@@ -1,3 +1,10 @@
+## [1.5.3](https://github.com/wyre-technology/itglue-mcp/compare/v1.5.2...v1.5.3) (2026-04-07)
+
+
+### Bug Fixes
+
+* **ci:** deploy :latest tag, force revision via env var bump ([22fbae2](https://github.com/wyre-technology/itglue-mcp/commit/22fbae2fe71eca8fde7cfd9944c826f6bb550189))
+
 ## [1.5.2](https://github.com/wyre-technology/itglue-mcp/compare/v1.5.1...v1.5.2) (2026-03-31)
 
 
